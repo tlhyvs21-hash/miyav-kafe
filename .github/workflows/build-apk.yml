@@ -1,0 +1,58 @@
+name: Android APK Derle
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.24.0'
+          channel: 'stable'
+
+      - name: Kodumuzu yedekle (create adımı ezmesin diye)
+        run: |
+          mkdir -p /tmp/backup
+          cp -r lib /tmp/backup/lib
+          cp pubspec.yaml /tmp/backup/pubspec.yaml
+
+      - name: Android/iOS platform iskeletini oluştur
+        run: flutter create --platforms=android --org com.miyavkafe --project-name miyav_kafe .
+
+      - name: Kendi kodumuzu geri koy
+        run: |
+          rm -rf lib
+          cp -r /tmp/backup/lib lib
+          cp /tmp/backup/pubspec.yaml pubspec.yaml
+
+      - name: AdMob TEST App ID'yi AndroidManifest'e ekle
+        run: |
+          python3 - <<'PY'
+          import re
+          path = "android/app/src/main/AndroidManifest.xml"
+          with open(path) as f:
+              content = f.read()
+          meta = '        <meta-data android:name="com.google.android.gms.ads.APPLICATION_ID" android:value="ca-app-pub-3940256099942544~3347511713"/>\n'
+          if "com.google.android.gms.ads.APPLICATION_ID" not in content:
+              content = re.sub(r'(<application[^>]*>)', r'\1\n' + meta, content, count=1)
+          with open(path, "w") as f:
+              f.write(content)
+          PY
+
+      - name: Bağımlılıkları indir
+        run: flutter pub get
+
+      - name: APK oluştur (release)
+        run: flutter build apk --release
+
+      - name: APK'yı yükle (Actions sekmesinden indirilebilir)
+        uses: actions/upload-artifact@v4
+        with:
+          name: miyav-kafe-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
