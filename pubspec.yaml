@@ -12,11 +12,20 @@ dependencies:
   cupertino_icons: ^1.0.8
   shared_preferences: ^2.2.3
   google_mobile_ads: any
-  
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: any
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/icon/icon.png
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: false
+  image_path: "assets/icon/icon.png"
+  min_sdk_android: 21
